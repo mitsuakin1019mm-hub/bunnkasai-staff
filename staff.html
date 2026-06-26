@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文化祭 受付・管理（職員用）</title>
+<style>
+  :root{
+    --bg:#f6f5f1; --paper:#fff; --ink:#1f2430; --muted:#6b7280; --line:#e3e1da;
+    --primary:#27408b; --primary-d:#1c2f66; --accent:#d64545;
+    --ok:#1f8a52; --ok-bg:#e6f4ec; --part:#b06a00; --part-bg:#fbeede; --warn:#9a6a00; --warn-bg:#fbf2dd;
+    --radius:14px; --shadow:0 1px 2px rgba(31,36,48,.06),0 8px 24px rgba(31,36,48,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,Meiryo,system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;-webkit-text-size-adjust:100%}
+  header{position:sticky;top:0;z-index:10;background:var(--bg);padding:14px 16px 8px;border-bottom:1px solid var(--line)}
+  .hdr-inner{max-width:680px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .title{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .title .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .refresh{border:0;background:#eceae3;color:var(--ink);font-weight:700;font-size:13px;padding:8px 12px;border-radius:9px;cursor:pointer}
+  .modes{max-width:680px;margin:10px auto 0;display:flex;gap:6px;background:#ecebe5;padding:4px;border-radius:12px}
+  .modes button{flex:1;border:0;background:transparent;color:var(--muted);font-weight:700;font-size:14px;padding:9px;border-radius:9px;cursor:pointer}
+  .modes button.active{background:var(--paper);color:var(--primary);box-shadow:var(--shadow)}
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px 90px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-top:16px}
+  h2{font-size:16px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+  label{display:block;font-weight:700;font-size:13px;margin:14px 0 6px}
+  input{width:100%;font:inherit;padding:12px;border:1px solid #d6d4cc;border-radius:10px;background:#fff;color:var(--ink)}
+  input:focus{outline:2px solid var(--primary);outline-offset:1px;border-color:var(--primary)}
+  .btn{width:100%;border:0;border-radius:11px;padding:14px;font-size:16px;font-weight:800;cursor:pointer}
+  .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-d)}
+  .btn-accent{background:var(--accent);color:#fff}
+  .btn-ghost{background:#eceae3;color:var(--ink)}
+  .btn-line{background:#fff;color:var(--primary);border:1.5px solid var(--primary)}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .btn-row{display:flex;gap:10px;margin-top:18px}.btn-row .btn{flex:1}
+  .err{color:var(--accent);font-size:12px;margin-top:6px;display:none}.err.show{display:block}
+  .hint{color:var(--muted);font-size:12px;margin-top:6px}
+  .tabs{display:flex;gap:6px;background:#ecebe5;padding:4px;border-radius:11px}
+  .tabs button{flex:1;border:0;background:transparent;color:var(--muted);font-weight:700;font-size:13px;padding:9px 4px;border-radius:8px;cursor:pointer}
+  .tabs button.active{background:#fff;color:var(--primary);box-shadow:var(--shadow)}
+  .tabs button[disabled]{opacity:.5;cursor:not-allowed}
+  .numpad-input{font-size:34px;text-align:center;letter-spacing:.12em;font-weight:800;font-variant-numeric:tabular-nums;padding:16px}
+  .status-line{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:900;margin-bottom:6px}
+  .pill{font-size:13px;font-weight:800;padding:5px 12px;border-radius:999px}
+  .pill.un{background:var(--warn-bg);color:var(--warn)}.pill.part{background:var(--part-bg);color:var(--part)}.pill.done{background:var(--ok-bg);color:var(--ok)}
+  .checkin-list{margin:8px 0 0;padding:0;list-style:none}
+  .ci-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f6f5f1;border-radius:10px;margin-top:8px}
+  .ci-name{flex:1;font-weight:700}
+  .ci-btn{flex:0 0 auto;border:0;background:var(--accent);color:#fff;font-weight:800;padding:9px 16px;border-radius:9px;cursor:pointer}
+  .ci-btn[disabled]{opacity:.5;cursor:wait}
+  .ci-time{flex:0 0 auto;font-size:12px;color:var(--muted)}
+  .result-item{width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  .result-item:hover{border-color:var(--primary)}.result-item .rn{font-weight:900;color:var(--primary);font-variant-numeric:tabular-nums}
+  .stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .stat{flex:1 1 70px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 6px;text-align:center}
+  .stat .num{font-size:22px;font-weight:900}.stat .lab{font-size:11px;color:var(--muted)}
+  .stat.done .num{color:var(--ok)}.stat.un .num{color:var(--warn)}.stat.exp .num{color:var(--primary)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--muted);font-size:12px;position:sticky;top:0;background:#fff}
+  .tbl-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+  .st-un{color:var(--warn);font-weight:700}.st-part{color:var(--part);font-weight:700}.st-done{color:var(--ok);font-weight:700}
+  .del-btn{border:0;background:#f3e3e3;color:var(--accent);font-weight:700;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px}
+  .empty{text-align:center;color:var(--muted);padding:28px 10px;font-size:14px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .setup{background:#fdecec;color:#a11;border:1px solid #f3c0c0;border-radius:10px;padding:14px;font-size:13px;margin-top:16px}
+  .hidden{display:none !important}
+  .spin{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+
+<!-- ヘッダ（ログイン後のみ表示） -->
+<header id="app-header" class="hidden">
+  <div class="hdr-inner">
+    <div class="title"><span class="dot"></span>受付・管理 <span style="font-size:12px;color:var(--muted);font-weight:600">職員用</span></div>
+    <button class="refresh" id="refresh">↻ 更新</button>
+  </div>
+  <nav class="modes" id="modes">
+    <button data-mode="reception" class="active">受付</button>
+    <button data-mode="admin">管理</button>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <!-- パスコード画面 -->
+  <div class="card" id="gate">
+    <h2>職員ログイン</h2>
+    <p class="sub">受付・管理スタッフ用のパスコードを入力してください。</p>
+    <div class="setup hidden" id="setup-warn">⚠ 設定が未完了です。コード内 <b>API_URL</b> にGASのURLを貼ってください。</div>
+    <label>パスコード</label>
+    <input id="gate-pass" type="password" placeholder="合言葉">
+    <div class="err" id="gate-err">パスコードが違うか、サーバに接続できません。</div>
+    <button class="btn btn-primary" id="gate-go" style="margin-top:16px">ログイン</button>
+  </div>
+
+  <!-- ===== 受付 ===== -->
+  <section id="view-reception" class="hidden">
+    <div class="card">
+      <h2>受付</h2>
+      <p class="sub">受付番号を入力するか、氏名で検索してください。招待者は1人ずつ受付できます。</p>
+      <div class="tabs" id="rec-tabs">
+        <button data-tab="number" class="active">番号入力</button>
+        <button data-tab="name">氏名検索</button>
+        <button data-tab="qr" disabled title="将来対応">QR読取（準備中）</button>
+      </div>
+      <div id="tab-number" style="margin-top:14px">
+        <input id="rec-number" class="numpad-input" inputmode="numeric" maxlength="5" placeholder="00000">
+        <button class="btn btn-primary" id="rec-number-go" style="margin-top:10px">この番号を呼び出す</button>
+        <div class="err" id="e-recnum">その受付番号は見つかりませんでした。</div>
+      </div>
+      <div id="tab-name" class="hidden" style="margin-top:14px">
+        <input id="rec-name" placeholder="生徒氏名 または 招待者氏名">
+        <button class="btn btn-line" id="rec-name-go" style="margin-top:10px">検索する</button>
+        <div id="rec-name-results"></div>
+      </div>
+    </div>
+
+    <div class="card hidden" id="rec-detail">
+      <div class="status-line"><span id="rec-d-name">—</span><span class="pill" id="rec-d-pill">—</span></div>
+      <p class="sub" id="rec-d-meta">—</p>
+      <div style="font-weight:700;font-size:13px;color:var(--muted)">来場者（受付 <span id="rec-d-count">0/0</span>）</div>
+      <ul class="checkin-list" id="rec-d-invitees"></ul>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="rec-d-cancel">戻る</button>
+        <button class="btn btn-accent" id="rec-d-auth">全員を受付する</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 管理 ===== -->
+  <section id="view-admin" class="hidden">
+    <div class="card">
+      <h2>管理</h2>
+      <p class="sub">登録の一覧・検索・CSV出力・個別削除ができます。</p>
+      <div class="stats">
+        <div class="stat"><div class="num" id="st-reg">0</div><div class="lab">登録 件数</div></div>
+        <div class="stat exp"><div class="num" id="st-exp">0</div><div class="lab">来場予定</div></div>
+        <div class="stat done"><div class="num" id="st-done">0</div><div class="lab">受付済</div></div>
+        <div class="stat un"><div class="num" id="st-un">0</div><div class="lab">未受付</div></div>
+      </div>
+      <input id="adm-search" placeholder="氏名・受付番号で絞り込み">
+      <div class="btn-row">
+        <button class="btn btn-line" id="adm-csv">CSVを出力</button>
+        <button class="btn btn-ghost" id="adm-reload">最新に更新</button>
+      </div>
+      <div id="adm-table-wrap" style="margin-top:14px"></div>
+    </div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====== 設定：GASウェブアプリのURLを貼り付け ====== */
+var API_URL = 'https://script.google.com/macros/s/AKfycbyc8qHFbeGoY9pPu4j1mU2Wuvj7rM7W3cCs98p0v72ef8wtKpSz504pu2YduHGEDAmp6A/exec';
+/* ================================================ */
+
+var TOKEN = null;       // ログイン時に入力したパスコードを保持（リクエストに添付）
+var RECORDS = [];       // サーバから取得した全レコードのキャッシュ
+
+function $(id){ return document.getElementById(id); }
+function show(el){ el.classList.remove('hidden'); }
+function hide(el){ el.classList.add('hidden'); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function toast(m){ var t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(function(){t.classList.remove('show');},1900); }
+function fmtTime(iso){ if(!iso) return '—'; var d=new Date(iso),p=function(n){return(n<10?'0':'')+n;}; return d.getFullYear()+'/'+p(d.getMonth()+1)+'/'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+function recStatus(r){ var t=r.invitees.length,done=r.invitees.filter(function(o){return o.checkedIn;}).length;
+  var k=(done===0)?'un':(done<t?'part':'done'); var l=(k==='un')?'未受付':(k==='part'?'一部受付':'受付済'); return {total:t,done:done,key:k,label:l}; }
+
+async function api(payload){
+  var res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
+  return await res.json();
+}
+if(API_URL.indexOf('PASTE_YOUR')===0){ show($('setup-warn')); }
+
+/* ---------- ログイン ---------- */
+$('gate-go').addEventListener('click', login);
+$('gate-pass').addEventListener('keydown', function(e){ if(e.key==='Enter') login(); });
+async function login(){
+  if(API_URL.indexOf('PASTE_YOUR')===0){ show($('setup-warn')); return; }
+  var pass=$('gate-pass').value.trim(); if(!pass) return;
+  $('gate-err').classList.remove('show');
+  var btn=$('gate-go'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try{
+    var r = await api({ action:'list', token:pass });
+    if(r && r.ok){
+      TOKEN=pass; RECORDS=r.records||[];
+      hide($('gate')); show($('app-header')); setMode('reception');
+    } else {
+      $('gate-err').classList.add('show');
+    }
+  } catch(e){ $('gate-err').classList.add('show'); }
+  finally { btn.disabled=false; btn.textContent='ログイン'; }
+}
+
+async function refreshRecords(){
+  try{ var r=await api({action:'list',token:TOKEN}); if(r&&r.ok){ RECORDS=r.records||[]; return true; } }catch(e){}
+  return false;
+}
+$('refresh').addEventListener('click', async function(){
+  this.disabled=true; var ok=await refreshRecords();
+  if(ok){ if(!$('view-admin').classList.contains('hidden')) renderAdmin(); toast('最新の状態に更新しました'); }
+  else toast('更新に失敗しました');
+  this.disabled=false;
+});
+
+/* ---------- モード ---------- */
+var views={ reception:$('view-reception'), admin:$('view-admin') };
+function setMode(mode){
+  for(var k in views){ hide(views[k]); } show(views[mode]);
+  $('modes').querySelectorAll('button').forEach(function(b){ b.classList.toggle('active', b.dataset.mode===mode); });
+  if(mode==='admin'){ renderAdmin(); }
+  window.scrollTo(0,0);
+}
+$('modes').addEventListener('click', function(e){ var b=e.target.closest('button'); if(!b) return; setMode(b.dataset.mode); });
+
+/* ---------- 受付 ---------- */
+$('rec-tabs').addEventListener('click', function(e){
+  var b=e.target.closest('button'); if(!b||b.disabled) return;
+  $('rec-tabs').querySelectorAll('button').forEach(function(x){ x.classList.toggle('active',x===b); });
+  $('tab-number').classList.toggle('hidden', b.dataset.tab!=='number');
+  $('tab-name').classList.toggle('hidden', b.dataset.tab!=='name');
+  hide($('rec-detail'));
+});
+$('rec-number-go').addEventListener('click', function(){ handleNumberSubmit($('rec-number').value); });
+$('rec-number').addEventListener('keydown', function(e){ if(e.key==='Enter') handleNumberSubmit(this.value); });
+
+/* ★ 将来QRを足すときの唯一の接続点：読み取り文字列を handleNumberSubmit(code) に渡すだけ ★ */
+async function handleNumberSubmit(raw){
+  $('e-recnum').classList.remove('show');
+  var n=String(raw).replace(/\D/g,''); if(!n) return;
+  var btn=$('rec-number-go'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try{
+    var r=await api({ action:'lookup', token:TOKEN, number:n });
+    if(r&&r.ok&&r.record){ showDetail(r.record); }
+    else { $('e-recnum').classList.add('show'); hide($('rec-detail')); }
+  }catch(e){ $('e-recnum').classList.add('show'); }
+  finally{ btn.disabled=false; btn.textContent='この番号を呼び出す'; }
+}
+
+$('rec-name-go').addEventListener('click', doNameSearch);
+$('rec-name').addEventListener('keydown', function(e){ if(e.key==='Enter') doNameSearch(); });
+async function doNameSearch(){
+  var q=$('rec-name').value.trim(); var box=$('rec-name-results'); box.innerHTML='';
+  if(!q) return;
+  await refreshRecords();
+  var hits=RECORDS.filter(function(r){ if(r.studentName.indexOf(q)>=0) return true; return r.invitees.some(function(o){return o.name.indexOf(q)>=0;}); });
+  if(hits.length===0){ box.innerHTML='<div class="empty">該当する登録がありません。</div>'; return; }
+  hits.forEach(function(r){
+    var st=recStatus(r);
+    var b=document.createElement('button'); b.className='result-item';
+    b.innerHTML='<span>'+esc(r.studentName)+'　<span style="color:var(--muted);font-size:12px">受付 '+st.done+'/'+st.total+'</span></span><span class="rn">'+r.receptionNumber+'</span>';
+    b.addEventListener('click', function(){ showDetail(r); });
+    box.appendChild(b);
+  });
+}
+
+var currentId=null;
+function findRec(id){ for(var i=0;i<RECORDS.length;i++){ if(RECORDS[i].id===id) return RECORDS[i]; } return null; }
+function replaceRec(rec){ for(var i=0;i<RECORDS.length;i++){ if(RECORDS[i].id===rec.id){ RECORDS[i]=rec; return; } } RECORDS.push(rec); }
+
+function showDetail(rec){
+  currentId=rec.id;
+  $('rec-d-name').textContent=rec.studentName;
+  $('rec-d-meta').textContent='受付番号 '+rec.receptionNumber+'　／　'+rec.grade+'年'+rec.classLetter+'組 '+rec.studentNumber+'番';
+  var st=recStatus(rec); var pill=$('rec-d-pill'); pill.textContent=st.label; pill.className='pill '+st.key;
+  $('rec-d-count').textContent=st.done+'/'+st.total;
+  var ul=$('rec-d-invitees'); ul.innerHTML='';
+  rec.invitees.forEach(function(o,idx){
+    var li=document.createElement('li'); li.className='ci-row';
+    var nm=document.createElement('span'); nm.className='ci-name'; nm.textContent=o.name; li.appendChild(nm);
+    if(o.checkedIn){
+      var p=document.createElement('span'); p.className='pill done'; p.textContent='受付済'; li.appendChild(p);
+      var t=document.createElement('span'); t.className='ci-time'; t.textContent=fmtTime(o.checkedInAt); li.appendChild(t);
+    }else{
+      var p2=document.createElement('span'); p2.className='pill un'; p2.textContent='未受付'; li.appendChild(p2);
+      var btn=document.createElement('button'); btn.className='ci-btn'; btn.textContent='受付';
+      btn.addEventListener('click', function(){ checkin(idx, btn); });
+      li.appendChild(btn);
+    }
+    ul.appendChild(li);
+  });
+  var allBtn=$('rec-d-auth');
+  if(st.done===st.total){ allBtn.disabled=true; allBtn.textContent='全員 受付済'; }
+  else { allBtn.disabled=false; allBtn.textContent='全員を受付する（残り'+(st.total-st.done)+'名）'; }
+  show($('rec-detail')); window.scrollTo(0, document.body.scrollHeight);
+}
+
+async function checkin(index, btnEl){
+  if(!currentId) return;
+  if(btnEl){ btnEl.disabled=true; btnEl.innerHTML='<span class="spin"></span>'; }
+  try{
+    var r=await api({ action:'checkin', token:TOKEN, id:currentId, index:index });
+    if(r&&r.ok&&r.record){ replaceRec(r.record); toast('受付しました'); showDetail(r.record); }
+    else { toast('受付に失敗しました'); if(btnEl){ btnEl.disabled=false; btnEl.textContent='受付'; } }
+  }catch(e){ toast('通信エラー'); if(btnEl){ btnEl.disabled=false; btnEl.textContent='受付'; } }
+}
+$('rec-d-auth').addEventListener('click', function(){ checkin('all', null); $('rec-d-auth').disabled=true; $('rec-d-auth').innerHTML='<span class="spin"></span>'; });
+$('rec-d-cancel').addEventListener('click', function(){ hide($('rec-detail')); currentId=null; $('rec-number').value=''; $('rec-name').value=''; $('rec-name-results').innerHTML=''; });
+
+/* ---------- 管理 ---------- */
+$('adm-search').addEventListener('input', renderAdmin);
+$('adm-reload').addEventListener('click', async function(){ var ok=await refreshRecords(); renderAdmin(); toast(ok?'更新しました':'更新に失敗しました'); });
+
+function renderAdmin(){
+  var totalInv=0,doneInv=0;
+  RECORDS.forEach(function(r){ totalInv+=r.invitees.length; doneInv+=r.invitees.filter(function(o){return o.checkedIn;}).length; });
+  $('st-reg').textContent=RECORDS.length; $('st-exp').textContent=totalInv; $('st-done').textContent=doneInv; $('st-un').textContent=totalInv-doneInv;
+
+  var q=$('adm-search').value.trim();
+  var rows=RECORDS.slice().sort(function(a,b){return a.receptionNumber-b.receptionNumber;});
+  if(q){ rows=rows.filter(function(r){ return String(r.receptionNumber).indexOf(q)>=0 || r.studentName.indexOf(q)>=0 || r.invitees.some(function(o){return o.name.indexOf(q)>=0;}); }); }
+
+  var wrap=$('adm-table-wrap');
+  if(rows.length===0){ wrap.innerHTML='<div class="empty">登録がありません。</div>'; return; }
+  var html='<div class="tbl-scroll"><table><thead><tr><th>受付番号</th><th>状況</th><th>受付</th><th>学年</th><th>組</th><th>番号</th><th>生徒氏名</th><th>招待者（✓=受付済）</th><th></th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var st=recStatus(r);
+    var nm=r.invitees.map(function(o){ return esc(o.name)+(o.checkedIn?' ✓':''); }).join('、');
+    html+='<tr><td style="font-weight:800;color:var(--primary)">'+r.receptionNumber+'</td>'
+      +'<td class="st-'+st.key+'">'+st.label+'</td><td>'+st.done+'/'+st.total+'</td>'
+      +'<td>'+esc(r.grade)+'年</td><td>'+esc(r.classLetter)+'</td><td>'+esc(r.studentNumber)+'</td>'
+      +'<td>'+esc(r.studentName)+'</td><td>'+nm+'</td>'
+      +'<td><button class="del-btn" data-id="'+r.id+'">削除</button></td></tr>';
+  });
+  html+='</tbody></table></div>';
+  wrap.innerHTML=html;
+  wrap.querySelectorAll('.del-btn').forEach(function(b){ b.addEventListener('click', function(){ delRecord(b.dataset.id); }); });
+}
+
+async function delRecord(id){
+  var rec=findRec(id);
+  if(!confirm('この登録を削除します。よろしいですか？\n'+(rec?rec.studentName+'（受付番号 '+rec.receptionNumber+'）':''))) return;
+  try{
+    var r=await api({ action:'delete', token:TOKEN, id:id });
+    if(r&&r.ok){ RECORDS=RECORDS.filter(function(x){return x.id!==id;}); renderAdmin(); toast('削除しました'); }
+    else toast('削除に失敗しました');
+  }catch(e){ toast('通信エラー'); }
+}
+
+/* CSV出力（UTF-8 BOM付き・招待者ごとの受付状態を含む） */
+$('adm-csv').addEventListener('click', function(){
+  var list=RECORDS.slice().sort(function(a,b){return a.receptionNumber-b.receptionNumber;});
+  if(list.length===0){ toast('出力するデータがありません'); return; }
+  var head=['登録ID','受付番号','学年','組','出席番号','生徒氏名','招待者数','受付済数','全体状況'];
+  for(var k=1;k<=5;k++){ head.push('招待者'+k,'招待者'+k+'_受付状態','招待者'+k+'_受付時刻'); }
+  head.push('メールアドレス','登録日時','QR文字列','備考');
+  var lines=[head.map(csvCell).join(',')];
+  list.forEach(function(r){
+    var st=recStatus(r);
+    var row=[r.id,r.receptionNumber,r.grade,r.classLetter,r.studentNumber,r.studentName,st.total,st.done,st.label];
+    for(var i=0;i<5;i++){
+      if(i<r.invitees.length){ var o=r.invitees[i]; row.push(o.name,o.checkedIn?'受付済':'未受付',o.checkedIn?fmtTime(o.checkedInAt):''); }
+      else row.push('','','');
+    }
+    row.push(r.email,fmtTime(r.createdAt),r.qrString,r.note||'');
+    lines.push(row.map(csvCell).join(','));
+  });
+  var csv='\uFEFF'+lines.join('\r\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='文化祭受付_'+ymd()+'.csv';
+  document.body.appendChild(a); a.click(); a.remove(); toast('CSVを出力しました');
+});
+function csvCell(v){ v=String(v==null?'':v); return '"'+v.replace(/"/g,'""')+'"'; }
+function ymd(){ var d=new Date(),p=function(n){return(n<10?'0':'')+n;}; return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate()); }
+</script>
+</body>
+</html>
